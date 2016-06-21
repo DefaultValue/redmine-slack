@@ -39,11 +39,11 @@ class SlackListener < Redmine::Hook::Listener
       for index in 0 ... channels.size
         specchannel = channels[index]
 
-        speak msg, url, attachment, specchannel
+        speak msg, specchannel, attachment, url
       end
     else
-      speak msg, url, attachment, channel
-    end
+      speak msg, channel, attachment,  url
+		end
 
 	end
 
@@ -68,10 +68,10 @@ class SlackListener < Redmine::Hook::Listener
 			for index in 0 ... channels.size
 				specchannel = channels[index]
 
-				speak msg, url, attachment, specchannel
+				speak msg, specchannel, attachment, url
 			end
 		else
-			speak msg, url, attachment, channel
+			speak msg, channel, attachment, url
 		end
 	end
 
@@ -124,10 +124,10 @@ class SlackListener < Redmine::Hook::Listener
 			for index in 0 ... channels.size
 				specchannel = channels[index]
 
-				speak msg, url, attachment, specchannel
+				speak msg, specchannel, attachment, url
 			end
 		else
-			speak msg, url, attachment, channel
+			speak msg, channel, attachment, url
 		end
 	end
 
@@ -156,10 +156,10 @@ class SlackListener < Redmine::Hook::Listener
 			for index in 0 ... channels.size
 				specchannel = channels[index]
 
-				speak msg, url, attachment, specchannel
+				speak msg, specchannel, attachment, url
 			end
 		else
-			speak msg, url, attachment, channel
+			speak msg, channel, attachment, url
 		end
 	end
 
@@ -191,7 +191,11 @@ class SlackListener < Redmine::Hook::Listener
 			client.ssl_config.cert_store.set_default_paths
 			client.ssl_config.ssl_version = :auto
 			client.post_async url, {:payload => params.to_json}
+			File.open('/var/www/1.txt', 'w') { |file| file.write(params.to_json) }
+			File.open('/var/www/2.txt', 'w') { |file| file.write(url) }
+
 		rescue Exception => e
+			File.open('/var/www/1.txt', 'w') { |file| file.write("1") }
 			logger.warn("cannot connect to #{url}")
 			logger.warn(e)
 		end
