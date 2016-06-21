@@ -34,16 +34,7 @@ class SlackListener < Redmine::Hook::Listener
 			:short => true
 		} if Setting.plugin_redmine_slack[:display_watchers] == 'yes'
 
-    channels = channel.split('|')
-    if channels.any?
-      for index in 0 ... channels.size
-        specchannel = channels[index]
-
-        speak msg, specchannel, attachment, url
-      end
-    else
-      speak msg, channel, attachment,  url
-		end
+		speakMultiChannel msg, channel, attachment, url
 
 	end
 
@@ -63,16 +54,8 @@ class SlackListener < Redmine::Hook::Listener
 		attachment[:text] = escape journal.notes if journal.notes
 		attachment[:fields] = journal.details.map { |d| detail_to_field d }
 
-		channels = channel.split('|')
-		if channels.any?
-			for index in 0 ... channels.size
-				specchannel = channels[index]
+		speakMultiChannel msg, channel, attachment, url
 
-				speak msg, specchannel, attachment, url
-			end
-		else
-			speak msg, channel, attachment, url
-		end
 	end
 
 	def model_changeset_scan_commit_for_issue_ids_pre_issue_update(context={})
@@ -119,16 +102,8 @@ class SlackListener < Redmine::Hook::Listener
 		attachment[:text] = ll(Setting.default_language, :text_status_changed_by_changeset, "<#{revision_url}|#{escape changeset.comments}>")
 		attachment[:fields] = journal.details.map { |d| detail_to_field d }
 
-		channels = channel.split('|')
-		if channels.any?
-			for index in 0 ... channels.size
-				specchannel = channels[index]
+		speakMultiChannel msg, channel, attachment, url
 
-				speak msg, specchannel, attachment, url
-			end
-		else
-			speak msg, channel, attachment, url
-		end
 	end
 
 	def controller_wiki_edit_after_save(context = { })
@@ -151,16 +126,8 @@ class SlackListener < Redmine::Hook::Listener
 			attachment[:text] = "#{escape page.content.comments}"
 		end
 
-		channels = channel.split('|')
-		if channels.any?
-			for index in 0 ... channels.size
-				specchannel = channels[index]
+		speakMultiChannel msg, channel, attachment, url
 
-				speak msg, specchannel, attachment, url
-			end
-		else
-			speak msg, channel, attachment, url
-		end
 	end
 
 	def speak(msg, channel, attachment=nil, url=nil)
@@ -191,9 +158,6 @@ class SlackListener < Redmine::Hook::Listener
 			client.ssl_config.cert_store.set_default_paths
 			client.ssl_config.ssl_version = :auto
 			client.post_async url, {:payload => params.to_json}
-			File.open('/var/www/1.txt', 'w') { |file| file.write(params.to_json) }
-			File.open('/var/www/2.txt', 'w') { |file| file.write(url) }
-
 		rescue Exception => e
 			File.open('/var/www/1.txt', 'w') { |file| file.write("1") }
 			logger.warn("cannot connect to #{url}")
@@ -315,4 +279,27 @@ private
 		# dashes and underscores and must start with a letter or number.
 		text.scan(/@[a-z0-9][a-z0-9_\-]*/).uniq
 	end
+
+	def speakMultiChannel(msg, channel, attachment, url)
+		channels = channel.split('|')
+		if channels.any?
+			for index in 0 ... channels.size
+				specchannel = channels[index]
+				speak msg, specchannel, attachment, url
+				speakRemoteChannel msg, specchannel, attachment
+			end
+		else
+			speak msg, channel, attachment,  url
+			speakRemoteChannel msg, channel, attachment
+		end
+	end
+
+	def speakRemoteChannel(msg, channel, attachment)
+		if channel == '#timelog_g_script'
+			remoteChannel = '#general'
+			remoteUrl = 'https://hooks.slack.com/services/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'
+			speak msg, remoteChannel, attachment, remoteUrl
+		end
+	end
+
 end
