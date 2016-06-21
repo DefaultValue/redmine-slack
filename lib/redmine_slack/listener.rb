@@ -34,7 +34,17 @@ class SlackListener < Redmine::Hook::Listener
 			:short => true
 		} if Setting.plugin_redmine_slack[:display_watchers] == 'yes'
 
-		speak msg, channel, attachment, url
+    channels = channel.split('|')
+    if channels.any?
+      for index in 0 ... channels.size
+        specchannel = channels[index]
+
+        speak msg, url, attachment, specchannel
+      end
+    else
+      speak msg, url, attachment, channel
+    end
+
 	end
 
 	def controller_issues_edit_after_save(context={})
@@ -53,7 +63,16 @@ class SlackListener < Redmine::Hook::Listener
 		attachment[:text] = escape journal.notes if journal.notes
 		attachment[:fields] = journal.details.map { |d| detail_to_field d }
 
-		speak msg, channel, attachment, url
+		channels = channel.split('|')
+		if channels.any?
+			for index in 0 ... channels.size
+				specchannel = channels[index]
+
+				speak msg, url, attachment, specchannel
+			end
+		else
+			speak msg, url, attachment, channel
+		end
 	end
 
 	def model_changeset_scan_commit_for_issue_ids_pre_issue_update(context={})
@@ -100,7 +119,16 @@ class SlackListener < Redmine::Hook::Listener
 		attachment[:text] = ll(Setting.default_language, :text_status_changed_by_changeset, "<#{revision_url}|#{escape changeset.comments}>")
 		attachment[:fields] = journal.details.map { |d| detail_to_field d }
 
-		speak msg, channel, attachment, url
+		channels = channel.split('|')
+		if channels.any?
+			for index in 0 ... channels.size
+				specchannel = channels[index]
+
+				speak msg, url, attachment, specchannel
+			end
+		else
+			speak msg, url, attachment, channel
+		end
 	end
 
 	def controller_wiki_edit_after_save(context = { })
@@ -123,7 +151,16 @@ class SlackListener < Redmine::Hook::Listener
 			attachment[:text] = "#{escape page.content.comments}"
 		end
 
-		speak comment, channel, attachment, url
+		channels = channel.split('|')
+		if channels.any?
+			for index in 0 ... channels.size
+				specchannel = channels[index]
+
+				speak msg, url, attachment, specchannel
+			end
+		else
+			speak msg, url, attachment, channel
+		end
 	end
 
 	def speak(msg, channel, attachment=nil, url=nil)
