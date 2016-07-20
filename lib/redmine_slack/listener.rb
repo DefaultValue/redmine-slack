@@ -286,11 +286,11 @@ private
 			for index in 0 ... channels.size
 				specchannel = channels[index]
 				speak msg, specchannel, attachment, url
-				speakRemoteChannel msg, specchannel, attachment
+				# speakRemoteChannel msg, specchannel, attachment
 			end
 		else
 			speak msg, channel, attachment,  url
-			speakRemoteChannel msg, channel, attachment
+			# speakRemoteChannel msg, channel, attachment
 		end
 	end
 
